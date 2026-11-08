@@ -1,0 +1,7 @@
+order_id,customer_id,order_date,region,product,quantity,revenue
+1001,1,2026-01-05,East,Laptop,1,1200
+1002,2,2026-01-09,West,Monitor,2,600
+1003,1,2026-02-03,East,Keyboard,3,240
+1004,3,2026-02-15,North,Laptop,2,2400
+1005,2,2026-03-01,West,Monitor,1,300
+1006,4,2026-03-12,South,Keyboard,5,400
