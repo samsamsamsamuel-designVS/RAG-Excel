@@ -1,6 +1,6 @@
 /* Scoped to Streamlit's semantic test IDs and our named containers, not generated class names. */
-.stApp { background: #f4f4f3; }
-[data-testid="stHeader"] { background: #f4f4f3e8; }
+.stApp { background: #d5d7da; }
+[data-testid="stHeader"] { background: #d5d7dae8; }
 [data-testid="stMainBlockContainer"] { max-width: 1250px; padding-top: 4.5rem; padding-bottom: 2rem; }
 .workspace-breadcrumb { color: #6a6e75; font-size: .88rem; margin: 0 0 16px; }
 .workspace-breadcrumb span { margin: 0 8px; color: #9b9da2; }
@@ -49,7 +49,7 @@ h1.workspace-title { color: #202328; font-size: clamp(2rem, 3.3vw, 2.85rem); let
 [class*="st-key-evidence_"] [data-testid="stText"]:first-child { color: #6b7078; font-size: .8rem; }
 [data-testid="stDownloadButton"] button { background: #c65316; border-color: #c65316; color: white; font-weight: 600; }
 [data-testid="stDownloadButton"] button:hover { background: #a9430d; color: white; border-color: #a9430d; }
-[data-testid="stBottom"] > div { background: #f4f4f3; }
+[data-testid="stBottom"] > div { background: #d5d7da; }
 [data-testid="stChatInput"] { background: #fff; border: 1px solid #cdd0d5; border-radius: 14px; box-shadow: 0 3px 15px #25282d08; }
 [data-testid="stChatInput"] textarea { background: #fff; color: #25282d; }
 [data-testid="stChatInputSubmitButton"] { background: #c65316; color: #fff; border-radius: 9px; margin: 4px; }
