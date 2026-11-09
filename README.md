@@ -3,7 +3,7 @@
 A commented Python + Streamlit application using Pandas, DuckDB, and the OpenAI API.
 Upload multiple `.csv`, `.xlsx`, or `.xls` files, ask questions conversationally, and
 inspect or download the SQL results behind each answer as an Excel (`.xlsx`) workbook.
-When an answer uses joins, an expanded relationships panel shows the source files
+When an answer uses joins, an expanded relationships panel shows the source files ju c
 and worksheets, SQL aliases, join types, and matching conditions from the executed
 query. These describe the query's joins, not verified primary/foreign-key constraints.
 
