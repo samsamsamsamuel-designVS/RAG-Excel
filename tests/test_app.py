@@ -91,8 +91,17 @@ class DataTests(unittest.TestCase):
         plan = QueryPlan(
             sql='SELECT SUM(revenue) AS total FROM table_1', clarification='')
         client.responses.create.side_effect = [SimpleNamespace(status='completed', output=[], output_text=plan.model_dump_json()), SimpleNamespace(status='completed', output_text='Total revenue is 60 (sales.csv).')]
-        answer = answer_question('Total revenue?', [], self.store, self.settings)
+        events = []
+        answer = answer_question('Total revenue?', [], self.store, self.settings,
+                                 on_progress=events.append)
         self.assertEqual(answer['data'].iloc[0]['total'], 60)
+        self.assertEqual(events, [
+            'Reading your question and recent conversation…',
+            'Preparing a query across 2 uploaded tables…',
+            'Validating and running the read-only data query…',
+            'Query completed: 1 result rows returned.',
+            'Writing the answer from query results and available PDF evidence…',
+        ])
         self.assertIn('60', client.responses.create.call_args.kwargs['input'])
 
     @patch('rag.OpenAI')

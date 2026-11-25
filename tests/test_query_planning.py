@@ -26,7 +26,11 @@ class PlanningTests(unittest.TestCase):
             response('{"sql":"WITH normalized AS (', 'incomplete', 'max_output_tokens'),
             response(self.valid),
         ]
-        self.assertEqual(self.plan().sql, 'SELECT 1')
+        events = []
+        plan = request_query_plan(self.client, self.settings, instructions='Plan SQL',
+                                  input='test', on_progress=events.append)
+        self.assertEqual(plan.sql, 'SELECT 1')
+        self.assertEqual(events, ['Retrying query preparation after an incomplete or invalid response…'])
         calls = self.client.responses.create.call_args_list
         self.assertEqual(calls[0].kwargs['max_output_tokens'], self.settings.plan_max_tokens)
         self.assertEqual(calls[1].kwargs['max_output_tokens'], self.settings.plan_retry_max_tokens)

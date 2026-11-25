@@ -123,6 +123,11 @@ The application rejects contexts above the configured size rather than silently
 omitting tables. Query output limits apply after aggregation; a sum still includes
 the entire source table. Upload changes reset the conversation to avoid stale answers.
 Query plans are checked for response completion before JSON validation or SQL execution.
+While a question runs, an expandable live activity panel reports actual workflow
+steps: PDF retrieval, query preparation and retries, database execution, answer
+generation, and evidence selection. It collapses on completion and shows an error
+state if the request fails. These updates describe app actions rather than private
+model reasoning, and do not require additional API calls.
 A plan cut off at its output limit is regenerated once with the larger budget; partial
 SQL is never executed. Malformed completed plans also get one retry. Refusals and
 other incomplete reasons are not retried. Response budgets include any model reasoning

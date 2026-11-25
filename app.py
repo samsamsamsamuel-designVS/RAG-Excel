@@ -190,8 +190,15 @@ if question and question.strip():
     st.session_state.messages.append(user_message)
     render_message(user_message, len(history))
     try:
-        with st.spinner('Querying your data and preparing an answer…'):
-            reply = answer_question(question.strip(), history, store, settings, documents)
+        with st.status('Starting your request…', expanded=True) as activity:
+            # Updates happen at real pipeline boundaries; no simulated thinking text.
+            def show_progress(message):
+                activity.update(label=message, state='running')
+                activity.write(message)
+
+            reply = answer_question(question.strip(), history, store, settings, documents,
+                                    on_progress=show_progress)
+            activity.update(label='Answer ready', state='complete', expanded=False)
     except AuthenticationError:
         reply = {'role': 'assistant', 'content': 'OpenAI rejected the API key. Update .env and restart the app.'}
     except RateLimitError:

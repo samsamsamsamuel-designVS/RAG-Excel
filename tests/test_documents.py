@@ -94,8 +94,13 @@ class DocumentTests(unittest.TestCase):
     def test_pdf_only(self, mock_openai):
         client = mock_openai.return_value.__enter__.return_value
         client.responses.create.return_value = SimpleNamespace(status='completed', output_text='Excellent starts at 80 [policy.pdf, p. 1].')
-        answer = answer_question('What is Excellent?', [], None, self.settings, self.docs)
+        events = []
+        answer = answer_question('What is Excellent?', [], None, self.settings, self.docs,
+                                 on_progress=events.append)
         self.assertIn('80', answer['content'])
+        self.assertIn('Retrieving context from your PDF documents…', events)
+        self.assertEqual(events[-1], 'Selecting relevant PDF paragraphs for the answer…')
+        self.assertFalse(any('running the read-only' in event for event in events))
         self.assertNotIn('text', client.responses.create.call_args_list[0].kwargs)
 
     @patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'})
