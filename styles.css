@@ -73,6 +73,8 @@ h1.workspace-title { color: #202328; font-size: clamp(2rem, 3.3vw, 2.85rem); let
 .empty-workspace p { color: #686e76; max-width: 490px; margin: 0 auto 22px; }
 .example-question { display: inline-block; background: #f5f5f4; border: 1px solid #e5e5e5; border-radius: 10px; padding: 12px 18px; font-size: .9rem; color: #5a6068; }
 .workspace-footer { color: #73777e; font-size: .75rem; margin: 20px 0 0; }
+/* Walkthrough cards beneath the workflow image. */
+[class*="st-key-guide_"] { background: #fff; border-radius: 12px; }
 @media (max-width: 700px) {
   [data-testid="stMainBlockContainer"] { padding: 4.5rem 1rem 2rem; }
   [data-testid="stBottomBlockContainer"] { padding-left: 1rem; padding-right: 1rem; }

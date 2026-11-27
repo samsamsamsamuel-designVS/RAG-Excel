@@ -16,7 +16,6 @@ from ui import apply_theme, render_brand, render_header, render_status, render_e
 
 st.set_page_config(page_title='Data & Knowledge | Chat', page_icon='📊', layout='wide')
 apply_theme()
-render_header()
 
 try:
     settings = load_settings()
@@ -122,114 +121,127 @@ documents = st.session_state.documents
 store = st.session_state.store
 ready = bool((store or documents) and settings.api_key
              and not (st.session_state.get('pdf_error') or st.session_state.get('load_error')))
-render_status(store, documents, ready)
-if documents:
-    with st.expander('Explore PDF knowledge'):
-        st.dataframe(documents.documents, width='stretch', hide_index=True)
-        for warning in documents.warnings:
-            st.warning(warning)
-        st.caption('PDF rules are provided to the AI when it plans queries. '
-                   'Example: “Use the performance policy to classify employees and show the criteria applied.”')
-if store:
-    with st.expander('Explore uploaded data'):
-        selected = st.selectbox('Table', range(len(store.tables)), format_func=lambda i:
-                               f'{store.tables[i]["table"]} — {store.tables[i]["file"]}'
-                               + (f' / {store.tables[i]["sheet"]}' if store.tables[i]['sheet'] else ''))
-        table = store.tables[selected]
-        size_column, page_column = st.columns(2)
-        with size_column:
-            page_size = st.selectbox('Rows per page', [25, 50, 100, 250, 500], index=1)
-        page_count = max(1, (table['rows'] + page_size - 1) // page_size)
-        # Reset the page when the selected data or page size changes.
-        page_context = (fingerprint, selected, page_size)
-        if st.session_state.get('explorer_context') != page_context:
-            st.session_state.explorer_context = page_context
-            st.session_state.explorer_page = 1
-        with page_column:
-            page = st.number_input('Page', min_value=1, max_value=page_count,
-                                   step=1, key='explorer_page')
-        offset = (page - 1) * page_size
-        # Browsing is independent of the smaller limit used for AI query results.
-        preview = store.page(table['table'], offset, page_size)
-        first_row = offset + 1 if table['rows'] else 0
-        last_row = min(offset + page_size, table['rows'])
-        st.caption(f'Rows {first_row:,}–{last_row:,} of {table["rows"]:,} · Page {page:,} of {page_count:,}')
-        st.dataframe(preview, width='stretch', height=450, hide_index=True)
-elif not documents:
-    render_empty_state()
 
 
-def render_message(message, index):
-    with st.chat_message(message['role']):
-        # The marker scopes bubble styling without depending on generated CSS classes.
-        role = 'user' if message['role'] == 'user' else 'assistant'
-        st.html(f'<span class="message-role-{role}"></span>')
-        st.markdown(message['content'])
-        knowledge = message.get('knowledge', {})
-        if knowledge.get('evidence'):
-            with st.expander('PDF evidence provided for this answer'):
-                if knowledge.get('partial'):
-                    st.warning('Only selected document passages were retrieved; other sections may contain additional conditions.')
-                for warning in knowledge.get('warnings', []):
-                    st.warning(warning)
-                for evidence_index, passage in enumerate(knowledge['evidence']):
-                    with st.container(key=f'evidence_{index}_{evidence_index}'):
-                        # Source content stays in escaped native widgets, never raw HTML.
-                        st.text(f'{passage["file"]} — page {passage["page"]}')
-                        st.text(passage['text'])
-        if 'sql' in message:
-            relationships = describe_relationships(message['sql'], store.tables if store else [])
-            if relationships:
-                with st.expander('Table relationships used in this answer', expanded=True):
-                    st.dataframe(relationships, width='stretch', hide_index=True)
-                    st.caption('These are the joins used by this query. INNER JOIN keeps matching rows; '
-                               'LEFT JOIN also keeps unmatched left rows; CROSS JOIN combines every pair of rows.')
-            with st.expander('View SQL and supporting data'):
-                st.dataframe(message['data'], width='stretch')
-                with st.expander('View SQL'):
-                    st.code(message['sql'], language='sql')
-                if message['truncated']:
-                    st.warning(f'Result capped at {settings.result_rows} rows. Ask for aggregates for complete totals.')
-                st.download_button('Download results as Excel',
-                                   results_to_excel(message['data']),
-                                   file_name='query_results.xlsx',
-                                   mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                   key=f'download_{index}', type='primary')
+def render_chat():
+    """Chat view; uploads stay in the shared entrypoint across page switches."""
+    render_header()
+    render_status(store, documents, ready)
+    if documents:
+        with st.expander('Explore PDF knowledge'):
+            st.dataframe(documents.documents, width='stretch', hide_index=True)
+            for warning in documents.warnings:
+                st.warning(warning)
+            st.caption('PDF rules are provided to the AI when it plans queries. '
+                       'Example: “Use the performance policy to classify employees and show the criteria applied.”')
+    if store:
+        with st.expander('Explore uploaded data'):
+            selected = st.selectbox('Table', range(len(store.tables)), format_func=lambda i:
+                                   f'{store.tables[i]["table"]} — {store.tables[i]["file"]}'
+                                   + (f' / {store.tables[i]["sheet"]}' if store.tables[i]['sheet'] else ''))
+            table = store.tables[selected]
+            size_column, page_column = st.columns(2)
+            with size_column:
+                page_size = st.selectbox('Rows per page', [25, 50, 100, 250, 500], index=1)
+            page_count = max(1, (table['rows'] + page_size - 1) // page_size)
+            # Reset the page when the selected data or page size changes.
+            page_context = (fingerprint, selected, page_size)
+            if st.session_state.get('explorer_context') != page_context:
+                st.session_state.explorer_context = page_context
+                st.session_state.explorer_page = 1
+            with page_column:
+                page = st.number_input('Page', min_value=1, max_value=page_count,
+                                       step=1, key='explorer_page')
+            offset = (page - 1) * page_size
+            # Browsing is independent of the smaller limit used for AI query results.
+            preview = store.page(table['table'], offset, page_size)
+            first_row = offset + 1 if table['rows'] else 0
+            last_row = min(offset + page_size, table['rows'])
+            st.caption(f'Rows {first_row:,}–{last_row:,} of {table["rows"]:,} · Page {page:,} of {page_count:,}')
+            st.dataframe(preview, width='stretch', height=450, hide_index=True)
+    elif not documents:
+        render_empty_state()
 
 
-for index, message in enumerate(st.session_state.messages):
-    render_message(message, index)
+    def render_message(message, index):
+        with st.chat_message(message['role']):
+            # The marker scopes bubble styling without depending on generated CSS classes.
+            role = 'user' if message['role'] == 'user' else 'assistant'
+            st.html(f'<span class="message-role-{role}"></span>')
+            st.markdown(message['content'])
+            knowledge = message.get('knowledge', {})
+            if knowledge.get('evidence'):
+                with st.expander('PDF evidence provided for this answer'):
+                    if knowledge.get('partial'):
+                        st.warning('Only selected document passages were retrieved; other sections may contain additional conditions.')
+                    for warning in knowledge.get('warnings', []):
+                        st.warning(warning)
+                    for evidence_index, passage in enumerate(knowledge['evidence']):
+                        with st.container(key=f'evidence_{index}_{evidence_index}'):
+                            # Source content stays in escaped native widgets, never raw HTML.
+                            st.text(f'{passage["file"]} — page {passage["page"]}')
+                            st.text(passage['text'])
+            if 'sql' in message:
+                relationships = describe_relationships(message['sql'], store.tables if store else [])
+                if relationships:
+                    with st.expander('Table relationships used in this answer', expanded=True):
+                        st.dataframe(relationships, width='stretch', hide_index=True)
+                        st.caption('These are the joins used by this query. INNER JOIN keeps matching rows; '
+                                   'LEFT JOIN also keeps unmatched left rows; CROSS JOIN combines every pair of rows.')
+                with st.expander('View SQL and supporting data'):
+                    st.dataframe(message['data'], width='stretch')
+                    with st.expander('View SQL'):
+                        st.code(message['sql'], language='sql')
+                    if message['truncated']:
+                        st.warning(f'Result capped at {settings.result_rows} rows. Ask for aggregates for complete totals.')
+                    st.download_button('Download results as Excel',
+                                       results_to_excel(message['data']),
+                                       file_name='query_results.xlsx',
+                                       mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                       key=f'download_{index}', type='primary')
 
-st.html('<p class="workspace-footer">Answers grounded in your uploaded files</p>')
 
-question = st.chat_input('Ask a question about your files…',
-                         disabled=not ((store or documents) and settings.api_key)
-                         or bool(st.session_state.get('pdf_error') or st.session_state.get('load_error')),
-                         max_chars=settings.question_chars)
-if question and question.strip():
-    history = list(st.session_state.messages)
-    user_message = {'role': 'user', 'content': question.strip()}
-    st.session_state.messages.append(user_message)
-    render_message(user_message, len(history))
-    try:
-        with st.status('Starting your request…', expanded=True) as activity:
-            # Updates happen at real pipeline boundaries; no simulated thinking text.
-            def show_progress(message):
-                activity.update(label=message, state='running')
-                activity.write(message)
+    for index, message in enumerate(st.session_state.messages):
+        render_message(message, index)
 
-            reply = answer_question(question.strip(), history, store, settings, documents,
-                                    on_progress=show_progress)
-            activity.update(label='Answer ready', state='complete', expanded=False)
-    except AuthenticationError:
-        reply = {'role': 'assistant', 'content': 'OpenAI rejected the API key. Update .env and restart the app.'}
-    except RateLimitError:
-        reply = {'role': 'assistant', 'content': 'OpenAI rate or quota limit reached. Check your API billing or try again later.'}
-    except APIConnectionError:
-        reply = {'role': 'assistant', 'content': 'Could not reach OpenAI. Check your connection and try again.'}
-    except APIStatusError as error:
-        reply = {'role': 'assistant', 'content': f'OpenAI request failed (HTTP {error.status_code}). Check your model access and try again.'}
-    except (ValueError, duckdb.Error) as error:
-        reply = {'role': 'assistant', 'content': f'I could not safely answer that question: {error}. Try a more specific question.'}
-    st.session_state.messages.append(reply)
-    render_message(reply, len(st.session_state.messages) - 1)
+    st.html('<p class="workspace-footer">Answers grounded in your uploaded files</p>')
+
+    question = st.chat_input('Ask a question about your files…',
+                             disabled=not ((store or documents) and settings.api_key)
+                             or bool(st.session_state.get('pdf_error') or st.session_state.get('load_error')),
+                             max_chars=settings.question_chars)
+    if question and question.strip():
+        history = list(st.session_state.messages)
+        user_message = {'role': 'user', 'content': question.strip()}
+        st.session_state.messages.append(user_message)
+        render_message(user_message, len(history))
+        try:
+            with st.status('Starting your request…', expanded=True) as activity:
+                # Updates happen at real pipeline boundaries; no simulated thinking text.
+                def show_progress(message):
+                    activity.update(label=message, state='running')
+                    activity.write(message)
+
+                reply = answer_question(question.strip(), history, store, settings, documents,
+                                        on_progress=show_progress)
+                activity.update(label='Answer ready', state='complete', expanded=False)
+        except AuthenticationError:
+            reply = {'role': 'assistant', 'content': 'OpenAI rejected the API key. Update .env and restart the app.'}
+        except RateLimitError:
+            reply = {'role': 'assistant', 'content': 'OpenAI rate or quota limit reached. Check your API billing or try again later.'}
+        except APIConnectionError:
+            reply = {'role': 'assistant', 'content': 'Could not reach OpenAI. Check your connection and try again.'}
+        except APIStatusError as error:
+            reply = {'role': 'assistant', 'content': f'OpenAI request failed (HTTP {error.status_code}). Check your model access and try again.'}
+        except (ValueError, duckdb.Error) as error:
+            reply = {'role': 'assistant', 'content': f'I could not safely answer that question: {error}. Try a more specific question.'}
+        st.session_state.messages.append(reply)
+        render_message(reply, len(st.session_state.messages) - 1)
+
+
+# Shared uploads and database state are initialized before rendering either page.
+page = st.navigation([
+    st.Page(render_chat, title="Chat", icon=":material/chat:", default=True),
+    st.Page("workflow_page.py", title="How it works", icon=":material/account_tree:", url_path="how-it-works"),
+])
+page.run()

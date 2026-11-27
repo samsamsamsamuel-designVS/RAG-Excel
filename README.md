@@ -142,6 +142,13 @@ tokens. Raising them may increase latency and cost. Restart Streamlit after edit
 
 ## Files and checks
 
+The sidebar provides **Chat** and **How it works** pages. The guide displays the
+updated grey-and-orange workflow image from `output/imagegen/`, scaled to the page
+width. Numbered explanations below it map each step to its Python files and
+functions, including retrieval, query planning, validation, execution, evidence,
+and export. The image and walkthrough describe the current PDF/BM25 implementation. Shared upload widgets
+keep files and chat state available while navigating. The guide makes no API calls.
+
 The grey-and-orange interface is configured in `.streamlit/config.toml` (native
 Streamlit colors), `styles.css` (layout and component styling), and `ui.py` (visual
 helpers). Uploaded text is rendered through native widgets rather than raw HTML.
