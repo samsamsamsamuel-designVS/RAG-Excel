@@ -103,7 +103,9 @@ def render_workflow():
     # Resolve from this file so the page works regardless of the launch directory.
     image = Path(__file__).parent / 'output' / 'imagegen' / 'How the HR Data Assistant Works - Updated.png'
     if image.is_file():
-        st.image(str(image), width='stretch', caption='How the HR Data Assistant Works — updated app workflow')
+        # Inset the image so its artwork does not meet the grey page edge directly.
+        with st.container(key='workflow_image'):
+            st.image(str(image), width='stretch', caption='How the HR Data Assistant Works — updated app workflow')
     else:
         st.warning('The updated workflow image is missing from output/imagegen.')
 
