@@ -11,6 +11,7 @@ from documents import DocumentStore
 from exports import results_to_excel
 from rag import answer_question
 from relationships import describe_relationships
+from samples import load_sample_files, combine_files
 from ui import apply_theme, render_brand, render_header, render_status, render_empty_state
 
 st.set_page_config(page_title='Data & Knowledge | Chat', page_icon='📊', layout='wide')
@@ -28,9 +29,29 @@ st.session_state.setdefault('store', None)
 st.session_state.setdefault('fingerprint', None)
 st.session_state.setdefault('documents', None)
 st.session_state.setdefault('pdf_fingerprint', None)
+st.session_state.setdefault('sample_files', None)
 
 with st.sidebar:
     render_brand()
+    if st.session_state.sample_files is None:
+        if st.button('Load sample data', width='stretch', type='primary', key='load_samples'):
+            try:
+                st.session_state.sample_files = load_sample_files()
+            except (OSError, ValueError) as error:
+                st.error(f'Could not load sample files: {error}')
+            else:
+                st.rerun()
+    else:
+        st.caption('Sample data loaded · 2 Excel files + 1 PDF')
+        if st.button('Remove sample data', width='stretch', key='remove_samples'):
+            st.session_state.sample_files = None
+            st.rerun()
+    if st.session_state.sample_files is not None:
+        with st.expander('Sample files and suggested question'):
+            for group in st.session_state.sample_files:
+                for name, _ in group:
+                    st.text(name)
+            st.caption('Using the promotion policy, list employees shortlisted for promotion and explain why.')
     with st.container(key='data_upload'):
         st.subheader('Data files')
         uploads = st.file_uploader('Upload CSV / Excel files', type=['csv', 'xlsx', 'xls'],
@@ -55,7 +76,8 @@ with st.sidebar:
         st.rerun()
 
 # Rebuild only when file contents change. Never share user data via a global cache.
-payloads = [(file.name, file.getvalue()) for file in uploads]
+sample_tables, sample_pdfs = st.session_state.sample_files or ([], [])
+payloads = combine_files(sample_tables, [(file.name, file.getvalue()) for file in uploads])
 fingerprint = tuple((name, hashlib.sha256(content).hexdigest()) for name, content in payloads)
 if fingerprint != st.session_state.fingerprint:
     if st.session_state.store is not None:
@@ -78,7 +100,7 @@ if st.session_state.get('load_error'):
     st.error(st.session_state.load_error)
 
 # PDF changes invalidate previous answers, while leaving spreadsheet tables loaded.
-pdf_payloads = [(file.name, file.getvalue()) for file in pdf_uploads]
+pdf_payloads = combine_files(sample_pdfs, [(file.name, file.getvalue()) for file in pdf_uploads])
 # Invalidate older chunk-based document state after the paragraph extraction update.
 pdf_fingerprint = ('paragraphs-v1', tuple((name, hashlib.sha256(content).hexdigest()) for name, content in pdf_payloads))
 if pdf_fingerprint != st.session_state.pdf_fingerprint:

@@ -9,6 +9,13 @@ query. These describe the query's joins, not verified primary/foreign-key constr
 
 ## Run locally
 
+Click **Load sample data** in the sidebar to load the two bundled employee Excel
+workbooks and promotion policy PDF together. Try: “Using the promotion policy,
+list employees shortlisted for promotion and explain why.” Upload controls remain
+available, and your uploads are added alongside the samples. **Remove sample data**
+removes only the bundled files. Adding or removing files resets the conversation.
+Sample loading is local; OpenAI is called only when you ask a question.
+
 Python 3.11–3.13 is recommended (newer Python versions may lack dependency wheels).
 
 ```bash
