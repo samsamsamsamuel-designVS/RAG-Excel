@@ -116,7 +116,8 @@ the file. `.env.example` documents every setting. Main controls:
 | `OPENAI_TIMEOUT_SECONDS` | Timeout per API attempt (one retry permitted) |
 | `PLAN_MAX_OUTPUT_TOKENS` | Initial SQL planning output budget, default 8000 |
 | `PLAN_RETRY_MAX_OUTPUT_TOKENS` | Budget for one incomplete/malformed-plan retry, default 16000 |
-| `ANSWER_MAX_OUTPUT_TOKENS` | Explanation output budget, default 4000 |
+| `ANSWER_MAX_OUTPUT_TOKENS` | Initial explanation output budget, default 8000 |
+| `ANSWER_RETRY_MAX_OUTPUT_TOKENS` | Budget for one length-limited explanation retry, default 16000 |
 | `MAX_FILES`, `MAX_FILE_MB`, `MAX_TABLES` | Upload limits |
 | `MAX_ROWS_PER_TABLE`, `MAX_COLUMNS` | Reject oversized tables without silently truncating |
 | `MAX_RESULT_ROWS` | Cap displayed and model-visible query results |
@@ -139,6 +140,11 @@ A plan cut off at its output limit is regenerated once with the larger budget; p
 SQL is never executed. Malformed completed plans also get one retry. Refusals and
 other incomplete reasons are not retried. Response budgets include any model reasoning
 tokens. Raising them may increase latency and cost. Restart Streamlit after editing `.env`.
+Explanations cut off at the output-token limit are regenerated once with the larger
+answer budget, using the same evidence and a request for a concise response. SQL
+is not rerun. Refusals and other incomplete reasons do not trigger this retry. If
+both explanation attempts hit their limit, completed SQL results and the Excel
+download remain available with an explicit notice; partial prose is discarded.
 
 ## Files and checks
 

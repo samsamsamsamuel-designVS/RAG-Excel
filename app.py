@@ -224,7 +224,10 @@ def render_chat():
 
                 reply = answer_question(question.strip(), history, store, settings, documents,
                                         on_progress=show_progress)
-                activity.update(label='Answer ready', state='complete', expanded=False)
+                if reply.get('explanation_incomplete'):
+                    activity.update(label='Results ready; explanation unavailable', state='error', expanded=False)
+                else:
+                    activity.update(label='Answer ready', state='complete', expanded=False)
         except AuthenticationError:
             reply = {'role': 'assistant', 'content': 'OpenAI rejected the API key. Update .env and restart the app.'}
         except RateLimitError:

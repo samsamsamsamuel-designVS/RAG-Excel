@@ -30,7 +30,8 @@ class Settings:
     pdf_context_chars: int = 24000
     plan_max_tokens: int = 8000
     plan_retry_max_tokens: int = 16000
-    answer_max_tokens: int = 4000
+    answer_max_tokens: int = 8000
+    answer_retry_max_tokens: int = 16000
 
 
 def load_settings() -> Settings:
@@ -66,5 +67,6 @@ def load_settings() -> Settings:
         pdf_context_chars=number('PDF_CONTEXT_CHARS', 24000),
         plan_max_tokens=number('PLAN_MAX_OUTPUT_TOKENS', 8000),
         plan_retry_max_tokens=number('PLAN_RETRY_MAX_OUTPUT_TOKENS', 16000),
-        answer_max_tokens=number('ANSWER_MAX_OUTPUT_TOKENS', 4000),
+        answer_max_tokens=number('ANSWER_MAX_OUTPUT_TOKENS', 8000),
+        answer_retry_max_tokens=number('ANSWER_RETRY_MAX_OUTPUT_TOKENS', 16000),
     )
