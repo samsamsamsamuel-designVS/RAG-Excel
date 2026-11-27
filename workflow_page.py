@@ -101,7 +101,7 @@ def render_workflow():
             '<p class="workspace-subtitle">From employee data and policy knowledge to an answer you can inspect.</p>')
 
     # Resolve from this file so the page works regardless of the launch directory.
-    image = Path(__file__).parent / 'output' / 'imagegen' / 'How the HR Data Assistant Works - Updated.png'
+    image = Path(__file__).parent / 'output' / 'imagegen' / 'How the HR Data Assistant Works.png'
     if image.is_file():
         # Inset the image so its artwork does not meet the grey page edge directly.
         with st.container(key='workflow_image'):
