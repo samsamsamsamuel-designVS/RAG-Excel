@@ -12,7 +12,7 @@ def apply_theme():
 
 def render_brand():
     st.html('<div class="workspace-brand"><span class="brand-bars" aria-hidden="true">'
-            '<i></i><i></i><i></i></span><span>Data &amp; Knowledge</span></div>')
+            '<i></i><i></i><i></i></span><span>HR Data Assistant</span></div>')
 
 
 def render_header():
